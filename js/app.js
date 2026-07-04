@@ -4,12 +4,12 @@
 /* =========================== CONFIG ============================ */
 // Set these before launch.
 const CONFIG = {
-  // Your Gumroad product checkout URL (create the product on gumroad.com, free).
-  gumroadUrl: "https://gumroad.com/", // TODO: replace with your product link, e.g. https://yourname.gumroad.com/l/tradepass-608
-  // Unlock codes you deliver to buyers in the Gumroad receipt/content.
-  // Change these before launch. Add a new code any time; old ones keep working
-  // unless you remove them. (v1 honor system — see README.)
-  unlockCodes: ["TRADEPASS-608"],
+  // Your Gumroad product checkout URL.
+  gumroadUrl: "https://fineprint6.gumroad.com/l/epa608",
+  // Unlock codes delivered to buyers in the Gumroad receipt/content.
+  // Add a new code any time (e.g. one per school for class deals); old ones
+  // keep working unless you remove them. (v1 honor system — see README.)
+  unlockCodes: ["EPA608-7FN0M8"],
   price: "$24",
   mockQuestions: 25,   // matches the real EPA 608 section format
   mockMinutes: 35,
