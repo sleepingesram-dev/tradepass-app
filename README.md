@@ -29,6 +29,8 @@ Open `index.html` in a browser. That's it — no install, no server.
 
 All user data (progress, misses, unlock status) is stored in `localStorage` on the user's device. There is no backend to pay for or break.
 
+**Installable + offline (PWA):** the app ships a manifest and service worker (`manifest.webmanifest`, `sw.js`), so users can install it from the browser — iPhone: Safari Share → *Add to Home Screen*; Android: Chrome menu → *Add to Home screen / Install app*; PC: install icon in Chrome/Edge address bar — and keep studying with no signal. Caching is network-first: online users always get the newest questions; offline users get the last version they loaded. Bump `CACHE` in `sw.js` only if you ever need to force-expire old caches.
+
 ## Before you launch — 3 things to change
 
 All three are at the top of [`js/app.js`](js/app.js) in `CONFIG`:
