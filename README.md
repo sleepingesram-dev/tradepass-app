@@ -16,6 +16,7 @@ Built to the spec in [`trade-exam-app-build-prompt.md`](trade-exam-app-build-pro
 | Progress tracker (per-topic %, weak/moderate/strong, home-screen readiness score) | "My Progress" |
 | Missed Questions Deck (auto-collects wrong answers, drops them after 2 correct in a row) | "Review My Misses" |
 | Free/paid gate (50 free questions + 1 free mock; $24 one-time unlocks everything) | "Unlock Full Bank" |
+| Account & Settings (edit name/email, plan status, Dark/Light/Auto theme, reset, sign out) | gear icon on Home |
 
 Answer options are re-shuffled every time a question is served, so users learn the material, not the letter positions.
 

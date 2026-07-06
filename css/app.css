@@ -17,6 +17,23 @@
   --radius: 14px;
 }
 
+/* Light theme — switched from Account & Settings (data-theme set by app.js) */
+:root[data-theme="light"] {
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --card-2: #e2e8f0;
+  --line: #cbd5e1;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #ea580c;
+  --accent-dark: #c2410c;
+  --good: #16a34a;
+  --good-bg: rgba(22, 163, 74, 0.12);
+  --bad: #dc2626;
+  --bad-bg: rgba(220, 38, 38, 0.10);
+  --warn: #a16207;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -93,7 +110,7 @@ body {
   font-weight: 700;
   cursor: pointer;
   text-align: center;
-  color: #fff;
+  color: var(--text);
   background: var(--card-2);
   border: 1px solid var(--line);
   margin-bottom: 10px;
@@ -358,3 +375,8 @@ input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 
 .empty-state { text-align: center; padding: 40px 16px; color: var(--muted); }
 .empty-state .big { font-size: 2.4rem; margin-bottom: 8px; }
+
+/* ---------- Account & Settings ---------- */
+
+.theme-row { display: flex; gap: 8px; }
+.theme-row .btn { flex: 1; }
