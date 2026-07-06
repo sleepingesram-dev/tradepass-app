@@ -35,12 +35,24 @@ function loadDB() {
           email: d.email || "",
           paid: !!d.paid,
           freeMockUsed: !!d.freeMockUsed,
+          theme: (d.theme === "light" || d.theme === "auto") ? d.theme : "dark",
           progress: d.progress || {}
         };
       }
     }
   } catch (e) { /* corrupted storage — start fresh */ }
-  return { name: "", email: "", paid: false, freeMockUsed: false, progress: {} };
+  return { name: "", email: "", paid: false, freeMockUsed: false, theme: "dark", progress: {} };
+}
+
+/* =========================== THEME ============================= */
+
+function applyTheme() {
+  const pref = db.theme || "dark";
+  const light = pref === "light" ||
+    (pref === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches);
+  document.documentElement.setAttribute("data-theme", light ? "light" : "dark");
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", light ? "#f1f5f9" : "#0f172a");
 }
 
 function saveDB() {
@@ -127,6 +139,7 @@ let view = db.email ? "home" : "welcome";
 let session = null;   // current study/mock session
 let lastResults = null; // last finished mock, for the results screen
 let upgradeMsg = "";  // feedback on the upgrade screen
+let accountMsg = "";  // feedback on the account screen
 
 function clearTimer() {
   if (session && session.timerId) { clearInterval(session.timerId); session.timerId = null; }
@@ -187,6 +200,7 @@ function renderHome() {
   let h = '<div class="topbar"><div class="brand">Trade<span class="pass">Pass</span></div>' +
     '<div class="spacer"></div>' +
     (db.paid ? '<span class="badge pro">FULL BANK</span>' : '<span class="badge free">FREE TIER</span>') +
+    '<button class="back-btn" data-action="account" aria-label="Account and settings">&#9881;&#65039;</button>' +
     "</div>";
 
   // Readiness indicator
@@ -517,7 +531,49 @@ function renderProgress() {
   });
 
   h += '<p class="muted center">Weak: below ' + CONFIG.weakBelow + "% &middot; Moderate: " + CONFIG.weakBelow + "&ndash;" + (CONFIG.strongAt - 1) + "% &middot; Strong: " + CONFIG.strongAt + "%+</p>";
-  h += '<p class="footnote"><a href="#" data-action="reset-progress">Reset all progress</a></p>';
+  return h;
+}
+
+/* --------------------- Account & Settings --------------------- */
+
+function renderAccount() {
+  let h = topbar("Account & Settings", "home");
+
+  // Who is signed in on this device
+  h += '<div class="card">' +
+    '<p class="muted" style="margin-bottom:10px">Signed in on this device as</p>' +
+    '<input type="text" id="acct-name" placeholder="Your name" autocomplete="name" value="' + esc(db.name) + '">' +
+    '<input type="email" id="acct-email" placeholder="Email" autocomplete="email" inputmode="email" value="' + esc(db.email) + '">' +
+    (accountMsg ? '<p style="color:var(--good);font-size:0.88rem;margin-bottom:10px">' + esc(accountMsg) + "</p>" : "") +
+    '<button class="btn" data-action="save-profile">Save Changes</button>' +
+    "</div>";
+
+  // Plan
+  h += '<div class="card">';
+  if (db.paid) {
+    h += '<p><span class="badge pro">FULL BANK</span></p>' +
+      '<p class="muted" style="margin-top:8px">Everything is unlocked on this device — every question, unlimited mock exams. Forever.</p>';
+  } else {
+    h += '<p><span class="badge free">FREE TIER</span></p>' +
+      '<p class="muted" style="margin:8px 0 12px">50 free questions + 1 mock exam.</p>' +
+      '<button class="btn good" data-action="upgrade" style="margin-bottom:0">&#128275; Unlock Full Bank &ndash; ' + CONFIG.price + "</button>";
+  }
+  h += "</div>";
+
+  // Appearance
+  const cur = db.theme || "dark";
+  h += '<div class="card"><p style="margin-bottom:10px"><strong>Appearance</strong></p><div class="theme-row">';
+  [["dark", "Dark"], ["light", "Light"], ["auto", "Auto"]].forEach(function (t) {
+    h += '<button class="btn small' + (cur === t[0] ? " primary" : "") + '" data-action="set-theme" data-arg="' + t[0] + '">' + t[1] + "</button>";
+  });
+  h += '</div><p class="muted" style="margin-top:10px;font-size:0.8rem">Auto follows your phone\'s dark/light setting.</p></div>';
+
+  // Data & device
+  h += '<div class="card"><p style="margin-bottom:8px"><strong>Your data</strong></p>' +
+    '<p class="muted" style="font-size:0.85rem;margin-bottom:12px">Progress, misses, and your unlock are saved on this device — not on a server. Clearing the browser\'s data erases them; the unlock code from your Gumroad receipt re-unlocks in seconds.</p>' +
+    '<button class="btn" data-action="reset-progress">Reset All Progress</button>' +
+    '<button class="btn ghost" data-action="signout">Sign Out</button>' +
+    "</div>";
   return h;
 }
 
@@ -575,6 +631,7 @@ function render() {
     case "mock": h = renderMock(); break;
     case "results": h = renderResults(); break;
     case "progress": h = renderProgress(); break;
+    case "account": h = renderAccount(); break;
     case "upgrade": h = renderUpgrade(); break;
     default: h = renderHome();
   }
@@ -606,6 +663,33 @@ const actions = {
     go("home");
   },
   "progress": function () { go("progress"); },
+  "account": function () { accountMsg = ""; go("account"); },
+  "save-profile": function () {
+    const name = (document.getElementById("acct-name").value || "").trim();
+    const email = (document.getElementById("acct-email").value || "").trim();
+    if (!email || email.indexOf("@") < 1) {
+      alert("Enter a valid email — it identifies your progress on this device.");
+      return;
+    }
+    db.name = name;
+    db.email = email;
+    saveDB();
+    accountMsg = "Saved.";
+    render();
+  },
+  "set-theme": function (arg) {
+    db.theme = (arg === "light" || arg === "auto") ? arg : "dark";
+    saveDB();
+    applyTheme();
+    render();
+  },
+  "signout": function () {
+    if (!confirm("Sign out on this device? Your progress and unlock stay saved here.")) return;
+    db.name = "";
+    db.email = "";
+    saveDB();
+    go("welcome");
+  },
   "upgrade": function () { upgradeMsg = ""; go("upgrade"); },
   "quick10": function () { startStudy("quick10"); },
   "misses": function () { startStudy("misses"); },
@@ -640,7 +724,7 @@ const actions = {
       db.progress = {};
       db.freeMockUsed = false;
       saveDB();
-      go("progress");
+      go("account");
     }
   }
 };
@@ -652,6 +736,13 @@ document.getElementById("app").addEventListener("click", function (e) {
   const fn = actions[el.getAttribute("data-action")];
   if (fn) fn(el.getAttribute("data-arg"));
 });
+
+applyTheme();
+if (window.matchMedia) {
+  window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", function () {
+    if (db.theme === "auto") applyTheme();
+  });
+}
 
 render();
 
