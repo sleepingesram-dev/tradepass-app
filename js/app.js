@@ -654,3 +654,9 @@ document.getElementById("app").addEventListener("click", function (e) {
 });
 
 render();
+
+// PWA: installable + works offline (see sw.js). Relative path keeps it
+// working under the /tradepass-app/ subpath on GitHub Pages.
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(function () { /* offline mode unavailable; app still works */ });
+}
